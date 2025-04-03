@@ -1,4 +1,5 @@
 # .gitignore
-google-credentials.json
+google_credentials.json
 .env
 .vercel
+venv

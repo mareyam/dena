@@ -14,6 +14,7 @@ from fastapi import FastAPI, HTTPException
 from fastapi import FastAPI
 from pydantic import BaseModel
 import asyncio
+import json
 
 app = FastAPI()
 
@@ -32,7 +33,26 @@ google_x509_cert_url = os.getenv("GOOGLE_X509_CERT_URL")
 DOCUMENT_ID = os.getenv("DOCUMENT_ID")
 
 SCOPES = ["https://www.googleapis.com/auth/documents"]
-SERVICE_ACCOUNT_FILE = "google-credentials.json"
+
+credentials = {
+    "type": os.getenv("type", ""),
+    "project_id": os.getenv("project_id", ""),
+    "private_key_id": os.getenv("private_key_id", ""),
+    "private_key": os.getenv("private_key", "").replace('\\n', '\n'),  # Ensure correct newlines
+    "client_email": os.getenv("client_email", ""),
+    "client_id": os.getenv("client_id", ""),
+    "auth_uri": os.getenv("auth_uri", ""),
+    "token_uri": os.getenv("token_uri", ""),
+    "auth_provider_x509_cert_url": os.getenv("auth_provider_x509_cert_url", ""),
+    "client_x509_cert_url": os.getenv("client_x509_cert_url", ""),
+    "universe_domain": os.getenv("universe_domain", "")
+}
+
+json_filename = "google_credentials.json"
+
+with open(json_filename, "w") as json_file:
+    json.dump(credentials, json_file, indent=4)
+SERVICE_ACCOUNT_FILE =json_filename
 
 credentials = service_account.Credentials.from_service_account_file(
     SERVICE_ACCOUNT_FILE, scopes=SCOPES
@@ -268,7 +288,7 @@ async def generate_amazon_description():
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error generating description: {str(e)}")
 
-credentials_file = "google-credentials.json"
+credentials_file = json_filename
 amazon_sheet_url = "https://docs.google.com/spreadsheets/d/1A3SW1gqTQrB0Z5jGm0PcNQJnw2IcGFHuZd1aRPLt8ZQ/edit"
 scrap_sheet_url = "https://docs.google.com/spreadsheets/d/18UoIYMIzRXZzsWX12oTsEk13W3jTA9oTd_kT-iSQb4c/edit"
 output_sheet_url = "https://docs.google.com/spreadsheets/d/1At_QcMag0-jsEhoyMhhAPb1e_uUO26p56s9hX9-81rk/edit"
@@ -400,3 +420,10 @@ client = openai.OpenAI(api_key=api_key)
 # generate_amazon_bullets()
 # generate_amazon_description()
 # generate_amazon_title()
+
+# SERVICE_ACCOUNT_FILE = "google-credentials.json"
+
+# credentials = service_account.Credentials.from_service_account_file(
+#     SERVICE_ACCOUNT_FILE, scopes=SCOPES
+# )
+# docs_service = build("docs", "v1", credentials=credentials)
